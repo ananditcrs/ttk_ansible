@@ -1,0 +1,95 @@
+---
+- name: Install LAMP on Web Server
+  hosts: centos
+  become: true
+
+  tasks:
+  - name: Add epel-release repo
+    yum:
+     name: epel-release
+     state: present
+    when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
+
+  - name: Install Yum Utils tools
+    yum:
+     name: yum-utils
+     state: present
+
+  - name: Install remi php remote repo
+    yum:
+     name: "{{ repo_php7_baseurl }}"
+     state: present
+
+  - name: Install MySQL5.7 remote repo
+    yum:
+     name: "{{ repo_mysql57_baseurl }}"
+     state: present
+
+  - name: Install MySQL 5.7
+    yum: 
+     name:
+      - mysql-community-server
+      - mysql-community-client
+     state: present
+  
+  - name: Enable MySQL Service so automatically get started when system reboots
+    systemd:
+     name: mysqld
+     enabled: yes
+
+  - name: Start MySQL Service
+    service:
+     name: mysqld
+     state: started
+   
+  - name: Enable only desired php version
+    command:
+     cmd: yum-config-manager --enable {{ php73 }}
+
+  - name: Install now Apache
+    yum:
+     name: httpd
+     state: present
+
+  - name: Enable service httpd and ensure it is not masked
+    systemd:
+     name: httpd
+     enabled: yes
+     masked: no
+
+  - name: Remove if in case Nginx is already installed?
+    yum:
+     name: nginx
+     state: absent
+
+  - name: Start Apache Server
+    service:
+     name: httpd
+     state: started
+
+  - name: Install PHP packages
+    yum: name={{ item }} update_cache=yes state=present
+    with_items:
+     - git
+     - php
+     - php-curl
+     - php-gd
+     - php-json
+     - php-mysql
+     - php-pdo
+     - php-mcrypt
+     - php-imap
+
+  - name: ensure php.ini file is tweaked for production grade
+    lineinfile:
+     dest: /etc/php.ini
+     regexp: "{{ item.regexp }}"
+     line: " {{ item.line }}"
+    with_items: 
+     - { regexp: '^memory_limit', line: 'memory_limit = 512M' }
+     - { regexp: '^upload_max_filesize', line: 'upload_max_filesize = 100' }
+
+  - name: Restart Apache server
+    service:
+     name: httpd
+     state: restarted

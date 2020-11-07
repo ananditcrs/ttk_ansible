@@ -1,0 +1,25 @@
+---
+- name: Install Nginx Webserver
+  hosts: centos
+  become: true
+
+  tasks:
+  - name: Add epel-release repo
+    yum:
+     name: epel-release
+     state: present
+
+  - name: Install now Nginx
+    yum:
+     name: nginx
+     state: present
+
+  - name: Remove if Apache is installed
+    yum:
+     name: httpd
+     state: absent
+
+  - name: Start Nginx
+    service:
+     name: nginx
+     state: started

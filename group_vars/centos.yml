@@ -1,0 +1,15 @@
+---
+ansible_user: root
+ansible_ssh_private_key_file: /home/testservermain
+
+# php related version and installation
+repo_php7_baseurl: https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+
+# mysql yum repo base url
+repo_mysql57_baseurl: https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
+
+# enable php version only php7.3
+php73: remi-php73
+
+# enable php version only php7.4
+php74: remi-php74
